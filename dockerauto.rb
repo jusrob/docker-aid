@@ -25,5 +25,5 @@ end
 
 containerInfo = inspectContainer(id)
 
-nzbget = DockerContainer.new(containerInfo)
-nzbget.display
+containertest = DockerContainer.new(containerInfo)
+containertest.display
