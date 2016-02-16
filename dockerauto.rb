@@ -5,20 +5,20 @@ require 'json'
 require 'optparse'
 
 options = {}
-options[:name] = ""
+options[:container] = ""
 options[:list] = false
 options[:refresh] = false
-options[:command] = false
+options[:showcommand] = false
 
 OptionParser.new do |opts|
   opts.banner = "Usage: dockerauto.rb [options]"
 
-  opts.on("-n", "--name NAME or ID", "Container to run on") do |n|
-    options[:name] = n
+  opts.on("-c", "--container NAME or ID", "Container to run on") do |c|
+    options[:container] = c
   end
 
-  opts.on("-c", "--command", "Show run command") do |c|
-    options[:command] = c
+  opts.on("-s", "--showcommand", "Show run command") do |s|
+    options[:showcommand] = s
   end
 
   opts.on("-l", "--list", "List container info") do |l|
@@ -28,9 +28,9 @@ OptionParser.new do |opts|
   opts.on("-r", "--refresh", "Refresh container if needed") do |r|
     options[:refresh] = r
   end
-  
+
 end.parse!
- 
+
 class DockerContainer
   def initialize info
     @info = info[0]
@@ -47,16 +47,16 @@ class DockerContainer
     puts "Mounted Volumes => #{@mounts}"
     puts "Port Bindings => #{@ports}"
     puts "Container Name => #{$name}"
-    puts "Restart Policy => #{$restart}" 
+    puts "Restart Policy => #{$restart}"
   end
-  def buildMounts 
+  def buildMounts
     mountlist = ''
     if @mounts.to_s == ''
       return ""
     else
       @mounts.each do |m|
         mountlist = "-v #{m} "
-      end     
+      end
       return mountlist.strip
     end
   end
@@ -83,7 +83,7 @@ class DockerContainer
     return cmdDel
   end
   def getRun
-    cmdRun = "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}" 
+    cmdRun = "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}"
     return cmdRun
   end
 end
@@ -93,9 +93,10 @@ def inspectContainer(id)
   infohash = JSON.parse(info)
   return infohash
 end
-unless options[:name] == ''
-  if options[:list] == false && options[:command] == false && options[:refresh] == false
-    puts "please provide -l(list config) -r(refreash container) or -c(show run command)" 
+
+unless options[:container] == ''
+  if options[:list] == false && options[:showommand] == false && options[:refresh] == false
+    puts "please provide -l(list config) -r(refreash container) or -c(show run command)"
   else
     containerInfo = inspectContainer(options[:name])
 
@@ -104,7 +105,7 @@ unless options[:name] == ''
     if options[:list] == true
       containertest.displayConfig
     end
-    if options[:command] == true
+    if options[:showcommand] == true
       puts containertest.getRun
     end
     if options[:refresh] == true
@@ -114,5 +115,5 @@ unless options[:name] == ''
     end
   end
 else
-  puts "-n contianer ID|NAME required"
+  puts "-c contianer ID|NAME required"
 end
