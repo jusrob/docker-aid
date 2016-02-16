@@ -5,15 +5,20 @@ require 'json'
 require 'optparse'
 
 options = {}
-options[:container] = ""
+options[:name] = ""
 options[:list] = false
 options[:refresh] = false
+options[:command] = false
 
 OptionParser.new do |opts|
   opts.banner = "Usage: dockerauto.rb [options]"
 
-  opts.on("-c", "--container NAME or ID", "Container to run on") do |c|
-    options[:container] = c
+  opts.on("-n", "--name NAME or ID", "Container to run on") do |n|
+    options[:name] = n
+  end
+
+  opts.on("-c", "--command", "Show run command") do |c|
+    options[:command] = c
   end
 
   opts.on("-l", "--list", "List container info") do |l|
@@ -25,7 +30,7 @@ OptionParser.new do |opts|
   end
   
 end.parse!
-
+ 
 class DockerContainer
   def initialize info
     @info = info[0]
@@ -36,20 +41,24 @@ class DockerContainer
     @ports = info[0]["HostConfig"]["PortBindings"]
     $restart = info[0]["HostConfig"]["RestartPolicy"]["Name"]
   end
-  def display
-    puts "Container ID is #{$id}"
-    puts "From #{$image}"
-    puts "Mounted volumes are #{@mounts}"
-    puts "Port Binding are #{@ports}"
-    puts "Name is #{$name}"
-    puts "Restart Policy is #{$restart}" 
+  def displayConfig
+    puts "Container ID => #{$id}"
+    puts "Container From => #{$image}"
+    puts "Mounted Volumes => #{@mounts}"
+    puts "Port Bindings => #{@ports}"
+    puts "Container Name => #{$name}"
+    puts "Restart Policy => #{$restart}" 
   end
   def buildMounts 
     mountlist = ''
-    @mounts.each do |m|
-      mountlist = "-v #{m} "
-    end     
-    return mountlist.strip
+    if @mounts.to_s == ''
+      return ""
+    else
+      @mounts.each do |m|
+        mountlist = "-v #{m} "
+      end     
+      return mountlist.strip
+    end
   end
   def buildPorts
     portConfig = ''
@@ -65,8 +74,17 @@ class DockerContainer
     end
     return portConfig.strip
   end
-  def buildRun
-    puts "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}" 
+  def getStop
+    cmdStop = "docker stop #{$id}"
+    return cmdStop
+  end
+  def getDel
+    cmdDel = "docker rm #{$id}"
+    return cmdDel
+  end
+  def getRun
+    cmdRun = "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}" 
+    return cmdRun
   end
 end
 
@@ -75,17 +93,26 @@ def inspectContainer(id)
   infohash = JSON.parse(info)
   return infohash
 end
-unless options[:container] == ''
-  containerInfo = inspectContainer(options[:container])
+unless options[:name] == ''
+  if options[:list] == false && options[:command] == false && options[:refresh] == false
+    puts "please provide -l(list config) -r(refreash container) or -c(show run command)" 
+  else
+    containerInfo = inspectContainer(options[:name])
 
-  containertest = DockerContainer.new(containerInfo)
-  if options[:list] == true
-    containertest.display
-  end
-  if options[:refresh] == true
-    containertest.buildRun
+    containertest = DockerContainer.new(containerInfo)
+
+    if options[:list] == true
+      containertest.displayConfig
+    end
+    if options[:command] == true
+      puts containertest.getRun
+    end
+    if options[:refresh] == true
+      puts containertest.getStop
+      puts containertest.getDel
+      puts containertest.getRun
+    end
   end
 else
-  puts "-c CONTAINER ID|NAME required"
+  puts "-n contianer ID|NAME required"
 end
-
