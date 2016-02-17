@@ -9,7 +9,7 @@ options[:container] = ""
 options[:list] = false
 options[:refresh] = false
 options[:showcommand] = false
-options[:pull] = false
+options[:force] = false
 
 
 OptionParser.new do |opts|
@@ -31,10 +31,9 @@ OptionParser.new do |opts|
     options[:refresh] = r
   end
 
-  opts.on("-p", "--pull", "Check for newer image only") do |pull|
-    options[:pull] = pull
+  opts.on("-f", "--force", "Force refresh of container") do |f|
+    options[:force] = f
   end
-
 end.parse!
 
 class DockerContainer
@@ -42,6 +41,7 @@ class DockerContainer
     @info = info[0]
     $id = info[0]["Config"]["Hostname"]
     $image = info[0]["Config"]["Image"]
+    $imageid = info[0]["Image"][7, 12]
     $name = info[0]["Name"]
     @mounts = info[0]["HostConfig"]["Binds"]
     @ports = info[0]["HostConfig"]["PortBindings"]
@@ -49,7 +49,8 @@ class DockerContainer
   end
   def displayConfig
     puts "Container ID => #{$id}"
-    puts "Container From => #{$image}"
+    puts "Container Image ID => #{$imageid}"
+    puts "Container Image => #{$image}"
     puts "Mounted Volumes => #{@mounts}"
     puts "Port Bindings => #{@ports}"
     puts "Container Name => #{$name}"
@@ -83,6 +84,12 @@ class DockerContainer
   def getImage
     return $image
   end
+  def getImageId
+    return $imageid
+  end
+  def getId
+    return $id
+  end
   def getStop
     cmdStop = "docker stop #{$id}"
     return cmdStop
@@ -103,14 +110,24 @@ def inspectContainer(id)
   return infohash
 end
 
-def checkNewImage(image)
-  info = %x( docker pull #{image} )
-  return info
+def checkNewImage(image, id)
+  latest = %x( docker images #{image} | grep latest | awk '{ print $3 }' )
+  #puts "#{image} - #{latest} != #{id}"
+  if id.strip != latest.strip
+    return true
+  else
+    info = %x( docker pull #{image} )
+    if info.include? "Status: Image is up to date for"
+      return false
+    else
+      return true
+    end
+  end
 end
 
 unless options[:container] == ''
   if options[:list] == false && options[:showommand] == false && options[:refresh] == false
-    puts "please provide -l(list config) -r(refreash container) or -c(show run command)"
+    puts "please provide -l(list config) -r(refreash container) -p(check for new image) or -s(show run command)"
   else
     containerInfo = inspectContainer(options[:container])
 
@@ -123,15 +140,18 @@ unless options[:container] == ''
       puts containertest.getRun
     end
     if options[:refresh] == true
-      puts "Please run the below commands"
-      puts containertest.getStop
-      puts containertest.getDel
-      puts containertest.getRun
-    end
-    if options[:pull] == true
-      puts checkNewImage(containertest.getImage)
+      refreshNeeded = checkNewImage(containertest.getImage, containertest.getImageId)
+      if refreshNeeded == true || options[:force] == true
+        puts "Please run the below commands"
+        puts containertest.getStop
+        puts containertest.getDel
+        puts containertest.getRun
+      else
+        puts "No Refresh Needed"
+      end
     end
   end
 else
   puts "-c contianer ID|NAME required"
 end
+
