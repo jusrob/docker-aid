@@ -55,7 +55,7 @@ class DockerContainer
       return ""
     else
       @mounts.each do |m|
-        mountlist = "-v #{m} "
+        mountlist += "-v #{m} "
       end
       return mountlist.strip
     end
@@ -98,7 +98,7 @@ unless options[:container] == ''
   if options[:list] == false && options[:showommand] == false && options[:refresh] == false
     puts "please provide -l(list config) -r(refreash container) or -c(show run command)"
   else
-    containerInfo = inspectContainer(options[:name])
+    containerInfo = inspectContainer(options[:container])
 
     containertest = DockerContainer.new(containerInfo)
 
@@ -109,6 +109,7 @@ unless options[:container] == ''
       puts containertest.getRun
     end
     if options[:refresh] == true
+      puts "Please run the below commands"
       puts containertest.getStop
       puts containertest.getDel
       puts containertest.getRun
