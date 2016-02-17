@@ -9,6 +9,8 @@ options[:container] = ""
 options[:list] = false
 options[:refresh] = false
 options[:showcommand] = false
+options[:pull] = false
+
 
 OptionParser.new do |opts|
   opts.banner = "Usage: dockerauto.rb [options]"
@@ -27,6 +29,10 @@ OptionParser.new do |opts|
 
   opts.on("-r", "--refresh", "Refresh container if needed") do |r|
     options[:refresh] = r
+  end
+
+  opts.on("-p", "--pull", "Check for newer image only") do |pull|
+    options[:pull] = pull
   end
 
 end.parse!
@@ -74,6 +80,9 @@ class DockerContainer
     end
     return portConfig.strip
   end
+  def getImage
+    return $image
+  end
   def getStop
     cmdStop = "docker stop #{$id}"
     return cmdStop
@@ -92,6 +101,11 @@ def inspectContainer(id)
   info = %x( docker inspect #{id} )
   infohash = JSON.parse(info)
   return infohash
+end
+
+def checkNewImage(image)
+  info = %x( docker pull #{image} )
+  return info
 end
 
 unless options[:container] == ''
@@ -113,6 +127,9 @@ unless options[:container] == ''
       puts containertest.getStop
       puts containertest.getDel
       puts containertest.getRun
+    end
+    if options[:pull] == true
+      puts containertest.getImage
     end
   end
 else
