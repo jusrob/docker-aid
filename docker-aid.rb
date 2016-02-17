@@ -129,7 +129,7 @@ unless options[:container] == ''
       puts containertest.getRun
     end
     if options[:pull] == true
-      puts containertest.getImage
+      puts checkNewImage(containertest.getImage)
     end
   end
 else
