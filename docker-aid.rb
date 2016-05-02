@@ -13,7 +13,7 @@ options[:force] = false
 
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: dockerauto.rb [options]"
+  opts.banner = "Usage: dockerauto.rb -c[--container] <container name or id> [options]"
 
   opts.on("-c", "--container NAME or ID", "Container to run on") do |c|
     options[:container] = c
@@ -46,6 +46,7 @@ class DockerContainer
     @mounts = info[0]["HostConfig"]["Binds"]
     @ports = info[0]["HostConfig"]["PortBindings"]
     $restart = info[0]["HostConfig"]["RestartPolicy"]["Name"]
+    $tty = info[0]["Config"]["Tty"]
   end
   def displayConfig
     puts "Container ID => #{$id}"
@@ -55,6 +56,7 @@ class DockerContainer
     puts "Port Bindings => #{@ports}"
     puts "Container Name => #{$name}"
     puts "Restart Policy => #{$restart}"
+    puts "TTY Flag => #{$tty}"
   end
   def buildMounts
     mountlist = ''
@@ -66,6 +68,13 @@ class DockerContainer
       end
       return mountlist.strip
     end
+  end
+  def buildOptions
+    runOpts = ''
+    if $tty == true
+      runOpts += "-t "
+    end
+    return runOpts.strip
   end
   def buildPorts
     portConfig = ''
@@ -99,7 +108,7 @@ class DockerContainer
     return cmdDel
   end
   def getRun
-    cmdRun = "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}"
+    cmdRun = "docker run -d --restart=#{$restart} --name=#{$name} " + self.buildOptions.to_s + self.buildPorts.to_s + " " + self.buildMounts.to_s + " #{$image}"
     return cmdRun
   end
 end
@@ -126,8 +135,8 @@ def checkNewImage(image, id)
 end
 
 unless options[:container] == ''
-  if options[:list] == false && options[:showommand] == false && options[:refresh] == false
-    puts "please provide -l(list config) -r(refreash container) -p(check for new image) or -s(show run command)"
+  if options[:list] == false && options[:showcommand] == false && options[:refresh] == false
+    puts "Please provide one of the following: -l[--list] -r[--refreash] -p[--pull] or -s[--showcommand]"
   else
     containerInfo = inspectContainer(options[:container])
 
@@ -143,15 +152,14 @@ unless options[:container] == ''
       refreshNeeded = checkNewImage(containertest.getImage, containertest.getImageId)
       if refreshNeeded == true || options[:force] == true
         puts "Please run the below commands"
-        puts containertest.getStop
-        puts containertest.getDel
-        puts containertest.getRun
+        runStop = `#{containertest.getStop}`
+        runDel = `#{containertest.getDel}`
+        runRun = `#{containertest.getRun}`
       else
         puts "No Refresh Needed"
       end
     end
   end
 else
-  puts "-c contianer ID|NAME required"
+  puts "-c <contianer ID or NAME> required"
 end
-
