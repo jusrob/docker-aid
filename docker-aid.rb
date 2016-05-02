@@ -14,7 +14,7 @@ options[:all] = false
 
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: dockerauto.rb -c[--container] <container name or id> [options]"
+  opts.banner = "Usage: docker-auto.rb -c[--container] <container name or id> [options]"
 
   opts.on("-c", "--container NAME or ID", "Container to run on") do |c|
     options[:container] = c
