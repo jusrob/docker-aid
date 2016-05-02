@@ -4,7 +4,7 @@ Tool designed to help with the management of single docker host
 
 ###Usage:
 
-######Show run command for container
+Show run command for container
 `docker-aid.rb -c mycontainer -s`
 
 ######List info about conatiner
