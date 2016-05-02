@@ -185,5 +185,5 @@ unless options[:container] == '' && options[:all] == false
     end
   end
 else
-  puts "-c <contianer ID or NAME> required"
+  puts "-c <contianer ID or NAME> or -a required"
 end
