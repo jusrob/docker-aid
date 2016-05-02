@@ -10,6 +10,7 @@ options[:list] = false
 options[:refresh] = false
 options[:showcommand] = false
 options[:force] = false
+options[:all] = false
 
 
 OptionParser.new do |opts|
@@ -33,6 +34,10 @@ OptionParser.new do |opts|
 
   opts.on("-f", "--force", "Force refresh of container") do |f|
     options[:force] = f
+  end
+
+  opts.on("-a", "--all", "do for all containers") do |a|
+    options[:all] = a
   end
 end.parse!
 
@@ -121,7 +126,6 @@ end
 
 def checkNewImage(image, id)
   latest = %x( docker images #{image} | grep latest | awk '{ print $3 }' )
-  #puts "#{image} - #{latest} != #{id}"
   if id.strip != latest.strip
     return true
   else
@@ -134,35 +138,49 @@ def checkNewImage(image, id)
   end
 end
 
-unless options[:container] == ''
+def getAllContainers
+  listContainers = %x( docker ps -a | awk 'NR>1{print $1}' )
+  return listContainers
+end
+
+unless options[:container] == '' && options[:all] == false
   if options[:list] == false && options[:showcommand] == false && options[:refresh] == false
     puts "Please provide one of the following: -l[--list] -r[--refreash] -p[--pull] or -s[--showcommand]"
   else
-    containerInfo = inspectContainer(options[:container])
-
-    containertest = DockerContainer.new(containerInfo)
-
-    if options[:list] == true
-      containertest.displayConfig
+    if options[:all] == true
+      containerList = getAllContainers()
+    else
+      containerList= options[:container]
     end
-    if options[:showcommand] == true
-      puts containertest.getRun
-    end
-    if options[:refresh] == true
-      refreshNeeded = checkNewImage(containertest.getImage, containertest.getImageId)
-      if refreshNeeded == true || options[:force] == true
-        puts "Please run the below commands"
-        puts "Stopping container....."
-        runStop = `#{containertest.getStop}`
-        puts runStop
-        puts "Deleting container....."
-        runDel = `#{containertest.getDel}`
-        puts runDel
-        puts "Starting container....."
-        runRun = `#{containertest.getRun}`
-        puts runRun
-      else
-        puts "No Refresh Needed"
+
+    containerList.each_line do |c|
+      puts "--------RUNNING FOR CONTAINER #{c.strip}--------"
+      containerInfo = inspectContainer(c)
+
+      containertest = DockerContainer.new(containerInfo)
+
+      if options[:list] == true
+        containertest.displayConfig
+      end
+      if options[:showcommand] == true
+        puts containertest.getRun
+      end
+      if options[:refresh] == true
+        refreshNeeded = checkNewImage(containertest.getImage, containertest.getImageId)
+        if refreshNeeded == true || options[:force] == true
+          puts "Please run the below commands"
+          puts "Stopping container....."
+          runStop = `#{containertest.getStop}`
+          puts runStop
+          puts "Deleting container....."
+          runDel = `#{containertest.getDel}`
+          puts runDel
+          puts "Starting container....."
+          runRun = `#{containertest.getRun}`
+          puts runRun
+        else
+          puts "No Refresh Needed"
+        end
       end
     end
   end
