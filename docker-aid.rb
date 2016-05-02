@@ -152,9 +152,15 @@ unless options[:container] == ''
       refreshNeeded = checkNewImage(containertest.getImage, containertest.getImageId)
       if refreshNeeded == true || options[:force] == true
         puts "Please run the below commands"
+        puts "Stopping container....."
         runStop = `#{containertest.getStop}`
+        puts runStop
+        puts "Deleting container....."
         runDel = `#{containertest.getDel}`
+        puts runDel
+        puts "Starting container....."
         runRun = `#{containertest.getRun}`
+        puts runRun
       else
         puts "No Refresh Needed"
       end
