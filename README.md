@@ -17,7 +17,6 @@ Tool designed to help with the management of single docker host
 `docker-aid.rb -c mycontainer -r -f`
 
 ```
-cdimac0020:docker-aid justin.roberts$ ./docker-aid.rb --help
 Usage: dockerauto.rb -c[--container] <container name or id> [options]
     -c, --container NAME or ID       Container to run on
     -s, --showcommand                Show run command
