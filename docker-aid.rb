@@ -20,6 +20,10 @@ OptionParser.new do |opts|
     options[:container] = c
   end
 
+  opts.on("-a", "--all", "do for all containers") do |a|
+    options[:all] = a
+  end
+
   opts.on("-s", "--showcommand", "Show run command") do |s|
     options[:showcommand] = s
   end
@@ -34,10 +38,6 @@ OptionParser.new do |opts|
 
   opts.on("-f", "--force", "Force refresh of container") do |f|
     options[:force] = f
-  end
-
-  opts.on("-a", "--all", "do for all containers") do |a|
-    options[:all] = a
   end
 end.parse!
 

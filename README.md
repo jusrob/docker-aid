@@ -17,8 +17,9 @@ Tool designed to help with the management of single docker host
 `docker-aid.rb -c mycontainer -r -f`
 
 ```
-Usage: dockerauto.rb -c[--container] <container name or id> [options]
+Usage: docker-auto.rb -c[--container] <container name or id> [options]
     -c, --container NAME or ID       Container to run on
+    -a, --all                        do for all containers
     -s, --showcommand                Show run command
     -l, --list                       List container info
     -r, --refresh                    Refresh container if needed
