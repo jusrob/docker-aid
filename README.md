@@ -4,7 +4,7 @@ Tool designed to help with the management of single docker host
 
 ###Usage:
 
-Show run command for container
+######Show run command for container
 `docker-aid.rb -c mycontainer -s`
 
 ######List info about conatiner
@@ -15,3 +15,13 @@ Show run command for container
 
 ######Force refresh container with newest version
 `docker-aid.rb -c mycontainer -r -f`
+
+```
+cdimac0020:docker-aid justin.roberts$ ./docker-aid.rb --help
+Usage: dockerauto.rb -c[--container] <container name or id> [options]
+    -c, --container NAME or ID       Container to run on
+    -s, --showcommand                Show run command
+    -l, --list                       List container info
+    -r, --refresh                    Refresh container if needed
+    -f, --force                      Force refresh of container
+```
