@@ -6,22 +6,22 @@ I personally use this in a crontab that runs periodically that checks for update
 
 ###Usage:
 
-######Show run command for container
+######Show run command for container(s)
 `docker-aid.rb -c mycontainer -s`
 or
 `docker-aid.rb -a -s`
 
-######List info about conatiner
+######List info about conatiner(s)
 `docker-aid.rb -c mycontainer -l`
 or
 `docker-aid.rb -a -l`
 
-######Refresh container with newest version
+######Refresh container(s) with newest version
 `docker-aid.rb -c mycontainer -r`
 or
 `docker-aid.rb -a -r`
 
-######Force refresh container with newest version
+######Force refresh container(s) with newest version
 `docker-aid.rb -c mycontainer -r -f`
 or
 `docker-aid.rb -a -r -f`
