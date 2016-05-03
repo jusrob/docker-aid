@@ -8,15 +8,23 @@ I personally use this in a crontab that runs periodically that checks for update
 
 ######Show run command for container
 `docker-aid.rb -c mycontainer -s`
+or
+`docker-aid.rb -a -s`
 
 ######List info about conatiner
 `docker-aid.rb -c mycontainer -l`
+or
+`docker-aid.rb -a -l`
 
 ######Refresh container with newest version
 `docker-aid.rb -c mycontainer -r`
+or
+`docker-aid.rb -a -r`
 
 ######Force refresh container with newest version
 `docker-aid.rb -c mycontainer -r -f`
+or
+`docker-aid.rb -a -r -f`
 
 ```
 Usage: docker-auto.rb -c[--container] <container name or id> [options]
