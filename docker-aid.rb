@@ -76,9 +76,7 @@ class DockerContainer
 
   def build_options
     run_opts = ''
-    if @tty == true
-      run_opts += '-t '
-    end
+    run_opts += '-t ' if @tty == true
     run_opts.strip
   end
 
@@ -88,40 +86,37 @@ class DockerContainer
       container_port = p[0]
       bind_ip = p[1][0]['HostIp']
       bind_port = p[1][0]['HostPort']
-      if bind_ip == ''
-        port_config += "-p #{bind_port}:#{container_port} "
-      else
-        port_config += "-p #{bind_ip}:#{bind_port}:#{container_port} "
-      end
+      port_config += if bind_ip.nil?
+                       "-p #{bind_port}:#{container_port}"
+                     else
+                       "-p #{bind_ip}:#{bind_port}:#{container_port}"
+                     end
     end
     port_config.strip
   end
 
-  def getImage
+  def show_image
     @image
   end
 
-  def getImageId
+  def show_imageid
     @imageid
   end
 
-  def getId
+  def show_id
     @id
   end
 
-  def getStop
-    cmd_stop = "docker stop #{@id}"
-    cmd_stop
+  def show_cmd_stop
+    "docker stop #{@id}"
   end
 
-  def getDel
-    cmd_del = "docker rm #{@id}"
-    cmd_del
+  def show_cmd_del
+    "docker rm #{@id}"
   end
 
-  def getRun
-    cmd_run = "docker run -d --restart=#{@restart} --name=#{@name} " + build_options.to_s + build_ports.to_s + ' ' + build_mounts.to_s + " #{@image}"
-    cmd_run
+  def show_cmd_run
+    "docker run -d --restart=#{@restart} --name=#{@name} " + build_options.to_s + ' ' + build_ports.to_s + ' ' + build_mounts.to_s + " #{@image}"
   end
 end
 
@@ -131,63 +126,52 @@ def inspect_container(id)
   infohash
 end
 
-def checkNewImage(image, id)
+def check_new_image(image, id)
   latest = `docker images #{image} | grep latest | awk '{ print $3 }'`
   return true if id.strip != latest.strip
   info = `docker pull #{image}`
-  if info.include? 'Status: Image is up to date for'
-    return false
-  else
-    return true
-  end
+  return false if info.include? 'Status: Image is up to date for'
+  true
 end
 
-def getAllContainers
-  list_containers = `docker ps -a | awk 'NR>1{print $1}'`
-  list_containers
+def show_all_containers
+  `docker ps -a | awk 'NR>1{print $1}'`
 end
 
-unless options[:container] == '' && options[:all] == false
-  if options[:list] == false && options[:showcommand] == false && options[:refresh] == false
-    puts 'Please provide one of the following: -l[--list] -r[--refreash] -p[--pull] or -s[--showcommand]'
-  else
-    if options[:all] == true
-      container_list = getAllContainers()
-    else
-      container_list = options[:container]
-    end
-
-    containerList.each_line do |c|
-      puts "--------RUNNING FOR CONTAINER #{c.strip}--------"
-      container_info = inspect_container(c)
-
-      container = DockerContainer.new(container_info)
-
-      if options[:list] == true
-        container.display_config
-      end
-      if options[:showcommand] == true
-        puts container.getRun
-      end
-      if options[:refresh] == true
-        refreshNeeded = checkNewImage(container.getImage, container.getImageId)
-        if refreshNeeded == true || options[:force] == true
-          puts 'Please run the below commands'
-          puts 'Stopping container.....'
-          runStop = `#{container.getStop}`
-          puts runStop
-          puts 'Deleting container.....'
-          runDel = `#{container.getDel}`
-          puts runDel
-          puts 'Starting container.....'
-          runRun = `#{container.getRun}`
-          puts runRun
-        else
-          puts 'No Refresh Needed'
-        end
-      end
-    end
-  end
-else
+if options[:container] != '' && options[:all] != false
   puts '-c <contianer ID or NAME> or -a required'
+elsif options[:list] == false && options[:showcommand] == false && options[:refresh] == false
+  puts 'Please provide one of the following: -l[--list] -r[--refreash] or -s[--showcommand]'
+else
+  container_list = if options[:all] == true
+                     show_all_containers
+                   else
+                     options[:container]
+                   end
+
+  container_list.each_line do |c|
+    puts "--------RUNNING FOR CONTAINER #{c.strip}--------"
+    container_info = inspect_container(c)
+
+    container = DockerContainer.new(container_info)
+
+    container.display_config if options[:list] == true
+    puts container.show_cmd_run if options[:showcommand] == true
+    next unless options[:refresh] == true
+    refresh_needed = check_new_image(container.show_image, container.show_imageid)
+    if refresh_needed == true || options[:force] == true
+      puts 'Please run the below commands'
+      puts 'Stopping container.....'
+      run_stop = `#{container.show_cmd_stop}`
+      puts run_stop
+      puts 'Deleting container.....'
+      run_del = `#{container.show_cmd_del}`
+      puts run_del
+      puts 'Starting container.....'
+      run_run = `#{container.show_cmd_run}`
+      puts run_run
+    else
+      puts 'No Refresh Needed'
+    end
+  end
 end
