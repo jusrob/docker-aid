@@ -66,15 +66,12 @@ class DockerContainer
   end
 
   def build_mounts
+    return '' if @mounts.to_s == ''
     mountlist = ''
-    if @mounts.to_s == ''
-      return ''
-    else
-      @mounts.each do |m|
-        mountlist += "-v #{m} "
-      end
-      return mountlist.strip
+    @mounts.each do |m|
+      mountlist += "-v #{m} "
     end
+    mountlist.strip
   end
 
   def build_options
@@ -123,7 +120,7 @@ class DockerContainer
   end
 
   def getRun
-    cmd_run = "docker run -d --restart=#{@restart} --name=#{@name} " + build_options.to_s + build_ports.to_s + " " + build_mounts.to_s + " #{@image}"
+    cmd_run = "docker run -d --restart=#{@restart} --name=#{@name} " + build_options.to_s + build_ports.to_s + ' ' + build_mounts.to_s + " #{@image}"
     cmd_run
   end
 end
@@ -136,15 +133,12 @@ end
 
 def checkNewImage(image, id)
   latest = `docker images #{image} | grep latest | awk '{ print $3 }'`
-  if id.strip != latest.strip
-    return true
+  return true if id.strip != latest.strip
+  info = `docker pull #{image}`
+  if info.include? 'Status: Image is up to date for'
+    return false
   else
-    info = `docker pull #{image}`
-    if info.include? 'Status: Image is up to date for'
-      return false
-    else
-      return true
-    end
+    return true
   end
 end
 
