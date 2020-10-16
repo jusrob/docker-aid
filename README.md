@@ -1,3 +1,4 @@
+# [ABANDONED]
 # docker-aid
 
 Tool designed to help with the management of single docker host.  It's main goal is for a specific container or all containers running on the localhost to determine if a newer version of its image is available.  If yes it can stop, remove, and restart the container using the newest image.
